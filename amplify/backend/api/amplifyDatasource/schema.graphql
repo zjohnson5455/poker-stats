@@ -1,5 +1,17 @@
-type Message @model {
+type Hand @model {
   id: ID!
-  title: String!
-  color: String
+  winners: [Player] @connection
+  game: Game! @connection
 }
+
+type Player @model {
+  id: ID!
+  name: String!
+}
+
+type Game @model {
+  id: ID!
+  date: String!
+}
+
+

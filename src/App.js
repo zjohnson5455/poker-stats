@@ -1,61 +1,96 @@
 import React, { useState, useEffect } from 'react'
-import { SketchPicker } from 'react-color'
 import { Input, Button } from 'antd'
 import { DataStore } from '@aws-amplify/datastore'
-import { Message} from './models'
-
-const initialState = { color: '#000000', title: '', }
+import { Player, Game} from './models'
 
 function App() {
-  const [formState, updateFormState] = useState(initialState)
-  const [messages, updateMessages] = useState([])
-  const [showPicker, updateShowPicker] = useState(false)
+  const [gameFormState, updateGameFormState] = useState({date: ""})
+  const [games, updateGames] = useState([])
+  const [playerFormState, updatePlayerFormState] = useState({name: ""})
+  const [players, updatePlayers] = useState([])
+  // const [handFormState, updateHandFormState] = useState([])
+  // const [hands, updateHands] = useState([])
 
   useEffect(() => { 
-    fetchMessages()
-    const subscription = DataStore.observe(Message).subscribe(() => fetchMessages())
-    return () => subscription.unsubscribe()
+    fetchGames()
+    const subscriptionGames = DataStore.observe(Game).subscribe(() => fetchGames())
+    fetchPlayers()
+    const subscriptionPlayers = DataStore.observe(Player).subscribe(() => fetchPlayers())
+    // fetchHands()
+    // const subscriptionHands = DataStore.observe(Hand).subscribe(() => fetchHands())
+    return function cleanup() {
+      subscriptionGames.unsubscribe()
+      subscriptionPlayers.unsubscribe()
+      // subscriptionHands.unsubscribe()
+    }
   })
 
-  function onChange(e) {
-    if (e.hex) {
-      updateFormState({ ...formState, color: e.hex })
-    } else { updateFormState({ ...formState, title: e.target.value }) }
+  function onGameChange(e) {
+    updateGameFormState({ ...gameFormState, date: e.target.value})
   }
+
+  function onPlayerChange(e) {
+    updatePlayerFormState({ ...playerFormState, name: e.target.value})
+  }
+
   
-  async function fetchMessages() {
-    const messages = await DataStore.query(Message)
-    updateMessages(messages)
+  async function fetchGames() {
+    const games = await DataStore.query(Game)
+    updateGames(games)
   }
-  async function createMessage() {
-    if (!formState.title) return
-    await DataStore.save(new Message({ ...formState }))
-    updateFormState(initialState)
+
+  async function fetchPlayers() {
+    const players = await DataStore.query(Player)
+    updatePlayers(players)
+  }
+
+
+  async function createGame() {
+    if (!gameFormState.date) return
+    await DataStore.save(new Game({ ...gameFormState }))
+    updateGameFormState({date: ""})
+  }
+
+  async function createPlayer() {
+    if (!playerFormState.date) return
+    await DataStore.save(new Player({ ...playerFormState }))
+    updatePlayerFormState({name: ""})
   }
 
     return (
       <div style={container}>
-        <h1 style={heading}>Real Time Message Board</h1>
+        <h1 style={heading}>Games and Players</h1>
         <Input
-          onChange={onChange}
-          name='title'
-          placeholder='Message title'
-          value={formState.title}
+          onChange={onGameChange}
+          name='Game'
+          placeholder='Game date'
+          value={gameFormState.date}
           style={input}
         />
-        <div>
-          <Button onClick={() => updateShowPicker(!showPicker)}style={button}>Toggle Color Picker</Button>
-          <p>Color: <span style={{fontWeight: 'bold', color: formState.color}}>{formState.color}</span></p>
-        </div>
+        <Button type='primary' onClick={createGame}>Create Game</Button>
         {
-          showPicker && <SketchPicker color={formState.color} onChange={onChange} />
-        }
-        <Button type='primary' onClick={createMessage}>Create Message</Button>
-        {
-          messages.map(message => (
-            <div key={message.id} style={{...messageStyle, backgroundColor: message.color}}>
+          games.map(game => (
+            <div key={game.id} style={{...messageStyle, backgroundColor: '#000000'}}>
               <div style={messageBg}>
-                <p style={messageTitle}>{message.title}</p>
+                <p style={messageTitle}>{game.date}</p>
+              </div>
+            </div>
+          ))
+        }
+        <p>-------------</p>
+        <Input
+          onChange={onPlayerChange}
+          name='Player'
+          placeholder='Player name'
+          value={playerFormState.date}
+          style={input}
+        />
+        <Button type='primary' onClick={createPlayer}>Create Player</Button>
+        {
+          players.map(player => (
+            <div key={player.id} style={{...messageStyle, backgroundColor: '#000000'}}>
+              <div style={messageBg}>
+                <p style={messageTitle}>{player.name}</p>
               </div>
             </div>
           ))

@@ -4,8 +4,10 @@ import { schema } from './schema';
 
 
 
-const { Message } = initSchema(schema);
+const { Hand, Player, Game } = initSchema(schema);
 
 export {
-  Message
+  Hand,
+  Player,
+  Game
 };
